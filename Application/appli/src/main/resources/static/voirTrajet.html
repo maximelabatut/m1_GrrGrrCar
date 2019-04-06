@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GrrGrrCar</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/w3.css">
+    <script language="javascript">
+
+        var xmlhttp;
+
+        function init() {
+            // put more code here in case you are concerned about browsers that do not provide XMLHttpRequest object directly
+            xmlhttp = new XMLHttpRequest();
+            miseAJour();
+        }
+
+        function miseAJour() {
+            var urlParams = new URLSearchParams(window.location.search);
+            var idTrajet = urlParams.get('id');
+            var pseudo = sessionStorage.getItem("pseudo");
+            var baseurl = "http://localhost:8080";
+            var url = baseurl + "/grrgrrcar/trajet/" + idTrajet;
+            xmlhttp.open('GET', url, true);
+            xmlhttp.send(null);
+            xmlhttp.onreadystatechange = function () {
+                if (xmlhttp.readyState == 4) {
+                    if (xmlhttp.status == 200) {
+                        var trajet = JSON.parse(xmlhttp.responseText);
+                        document.getElementById("villeDeb").value = trajet.depart;
+                        document.getElementById("villeFin").value = trajet.arrivee;
+                        document.getElementById("heureDep").value = new Date(trajet.dateDepart).toString();
+                        document.getElementById("nbPlace").value = trajet.nbPlaces;
+                        document.getElementById("tarif").value = trajet.tarif;
+                        var pseudoConducteur = trajet.createur;
+                        var cptConducteur = 0;
+                        for (var i = 0; i < trajet.reservations.length; i++) {
+                            cptConducteur++;
+                            if (trajet.createur === pseudo) {
+                                if(trajet.fini){
+                                    var divValide = document.createElement("div");
+                                    divValide.setAttribute('style', 'display:inline-block');
+                                    var titreValide = document.getElementById("titre_valide");
+                                    titreValide.innerHTML = "Personnes acceptées : ";
+                                    var personneValide = document.getElementById("personneValide");
+
+                                    var texteValide = document.createElement("div");
+                                    if(trajet.reservations[i].etat==1) {
+                                        texteValide.innerHTML = trajet.reservations[i].pseudoReservant + "<br/>";
+
+                                        var oImg1 = document.createElement("img");
+                                        oImg1.setAttribute('src', 'images/bagage.png');
+                                        oImg1.setAttribute('style', 'vertical-align:middle');
+                                        oImg1.setAttribute('height', '40px');
+                                        oImg1.setAttribute('width', '40px');
+                                        divValide.appendChild(oImg1);
+
+                                        var a = document.createElement("a");
+                                        a.setAttribute('href', 'votePersonne.html?id=' +idTrajet+"&&votePassanger="+trajet.reservations[i].pseudoReservant);
+                                        a.appendChild(texteValide);
+                                        a.setAttribute("style","display: inline-block;");
+                                        personneValide.appendChild(a);
+
+                                    }
+                                    personneValide.appendChild(divValide);
+                                    personneValide.appendChild(document.createElement("br"));
+
+                                } else {
+                                    switch (trajet.reservations[i].etat) {
+                                        case 0:
+                                            var personneAttente = document.getElementById("personneAttente");
+
+                                            var titreCreate = document.getElementById("titre_crea");
+                                            titreCreate.innerHTML = "Personnes voulant reserver : ";
+
+                                            var divAttente = document.createElement("div");
+                                            divAttente.setAttribute('style', 'display:inline-block');
+
+                                            var oImg1 = document.createElement("img");
+                                            oImg1.setAttribute('src', 'images/accept.png');
+                                            oImg1.setAttribute('style', 'vertical-align:middle');
+                                            oImg1.setAttribute('height', '40px');
+                                            oImg1.setAttribute('width', '40px');
+                                            oImg1.setAttribute('onclick', 'actionReservation("' + trajet.reservations[i].id + '", 1 )');
+                                            divAttente.appendChild(oImg1);
+
+                                            var oImg2 = document.createElement("img");
+                                            oImg2.setAttribute('src', 'images/refuser.png');
+                                            oImg2.setAttribute('style', 'vertical-align:middle');
+                                            oImg2.setAttribute('height', '40px');
+                                            oImg2.setAttribute('width', '40px');
+                                            oImg2.setAttribute('onclick', 'actionReservation("' + trajet.reservations[i].id + '", 2 )');
+                                            divAttente.appendChild(oImg2);
+
+                                            var texte = document.createElement("div");
+                                            texte.innerHTML = trajet.reservations[i].pseudoReservant + "<br/>";
+                                            var a = document.createElement("a");
+                                            a.setAttribute('href', 'consulterProfilPersonne.html?pseudo='+trajet.reservations[i].pseudoReservant);
+                                            a.appendChild(texte);
+
+                                            personneAttente.appendChild(a);
+                                            personneAttente.appendChild(divAttente);
+                                            break;
+
+                                        case 1:
+                                            var divValide = document.createElement("div");
+                                            divValide.setAttribute('style', 'display:inline-block');
+                                            var titreValide = document.getElementById("titre_valide");
+                                            titreValide.innerHTML = "Personnes acceptées : ";
+                                            var personneValide = document.getElementById("personneValide");
+
+                                            var texteValide = document.createElement("div");
+                                            texteValide.setAttribute("class","w3-btn-perso w3-btn");
+                                            texteValide.innerHTML = trajet.reservations[i].pseudoReservant + "<br/>";
+                                            var a = document.createElement("a");
+                                            a.setAttribute('href', 'consulterProfilPersonne.html?pseudo='+trajet.reservations[i].pseudoReservant);
+                                            a.appendChild(texteValide);
+                                            personneValide.appendChild(a);
+                                            personneValide.appendChild(divValide);
+                                            personneValide.setAttribute("class","w3-btn-perso");
+                                            personneValide.setAttribute("style","text-align:center;");
+                                            break;
+
+                                        case 2:
+                                            var divRefuse = document.createElement("div");
+                                            divRefuse.setAttribute('style', 'display:inline-block');
+                                            var titreRefuse = document.getElementById("titre_refuse");
+                                            titreRefuse.innerHTML = "Personnes refusées : ";
+                                            var personneRefuse = document.getElementById("personneRefuse");
+
+                                            var texteRefuse = document.createElement("div");
+                                            texteRefuse.setAttribute("class","w3-btn-perso w3-btn");
+                                            texteRefuse.innerHTML = trajet.reservations[i].pseudoReservant + "<br/>";
+                                            var a = document.createElement("a");
+                                            a.setAttribute('href', 'consulterProfilPersonne.html?pseudo='+trajet.reservations[i].pseudoReservant);
+                                            a.appendChild(texteRefuse);
+                                            personneRefuse.appendChild(a);
+                                            personneRefuse.appendChild(divRefuse);
+                                            break;
+                                    }
+                                }
+                            }
+                        }
+                        console.log(cptConducteur)
+                        if(pseudo !== pseudoConducteur && cptConducteur>0){
+                            var oImg9 = document.createElement("img");
+                            oImg9.setAttribute('src', 'images/volant.png');
+                            oImg9.setAttribute('style', 'vertical-align:middle');
+                            oImg9.setAttribute('height', '40px');
+                            oImg9.setAttribute('width', '40px');
+                            var a = document.createElement("a");
+                            a.setAttribute('href', 'votePersonne.html?id=' +idTrajet+"&votePassanger="+pseudoConducteur);
+                            a.appendChild(oImg9);
+                            document.getElementById("conducteur").setAttribute("class","w3-btn-perso")
+                            document.getElementById("conducteur").setAttribute("style","text-align:center;")
+                            document.getElementById("conducteur").innerText = pseudoConducteur;
+                            document.getElementById("conducteur").appendChild(a);
+                        }
+                    }
+                }
+            }
+        }
+
+        function reserver() {
+            var urlParams = new URLSearchParams(window.location.search);
+            var idTrajet = urlParams.get('id');
+            var reservant = sessionStorage.getItem("pseudo");
+            var baseurl = "http://localhost:8080";
+            var url = baseurl + "/grrgrrcar/trajet/" + idTrajet + "/reservation?pseudoReservant=" + reservant;
+            xmlhttp.open('POST', url, true);
+            xmlhttp.send(null);
+            xmlhttp.onreadystatechange = function () {
+                if (xmlhttp.readyState == XMLHttpRequest.DONE) {
+                    switch (xmlhttp.status) {
+                        case 201:
+                            document.location.href = "/voirSesTrajet.html";
+                            break;
+
+                        case 400:
+                            alert("Trajet introuvable");
+                            document.location.href = "/voirSesTrajet.html";
+                            break;
+
+                        case 406:
+                            alert("Trajet déja complet");
+                            document.location.href = "/voirSesTrajet.html";
+                            break;
+
+                        case 403:
+                            alert("Trajet déja demandé ");
+                            document.location.href = "/voirSesTrajet.html";
+                            break;
+
+                        default:
+                            document.location.href = "/reserverUnTrajet.html";
+                            break;
+                    }
+                }
+            }
+        }
+
+        function actionReservation(idReservation,etat) {
+            var createur = sessionStorage.getItem("pseudo");
+            var urlParams = new URLSearchParams(window.location.search);
+            var idTrajet = urlParams.get('id');
+            var baseurl = "http://localhost:8080";
+            var url = baseurl + "/grrgrrcar/trajet/" + idTrajet + "/reservation/" + idReservation +"?etat=" +etat;
+            console.log(url);
+            xmlhttp.open('PUT', url, true);
+            xmlhttp.send(null);
+            xmlhttp.onreadystatechange = function () {
+                if (xmlhttp.readyState == XMLHttpRequest.DONE) {
+                    switch (xmlhttp.status) {
+                        case 200:
+                            document.location.href = "/voirTrajet.html?id="+idTrajet;
+                            break;
+
+                        case 400:
+                            alert("Une erreur est survenue");
+                            document.location.href = "/voirTrajet.html?id="+idTrajet;
+                            break;
+
+                        default:
+                            alert("Une erreur est survenue");
+                            document.location.href = "/voirTrajet.html?id="+idTrajet;
+                            break;
+                    }
+                }
+            }
+        }
+
+        function voterPourPassager(pseudoToVote){
+            var createur = sessionStorage.getItem("pseudo");
+            var urlParams = new URLSearchParams(window.location.search);
+            var idTrajet = urlParams.get('id');
+            var baseurl = "http://localhost:8080";
+            var url = baseurl + "/grrgrrcar";
+            console.log(url);
+            xmlhttp.open('GET', url, true);
+            xmlhttp.send(null);
+            xmlhttp.onreadystatechange = function () {
+                if (xmlhttp.readyState == XMLHttpRequest.DONE) {
+                    switch (xmlhttp.status) {
+                        case 201:
+                            document.location.href = "/votePersonne.html?id="+idTrajet;
+                            break;
+
+                        case 400:
+                            alert("Une erreur est survenue");
+                            document.location.href = "/voirTrajet.html?id="+idTrajet;
+                            break;
+
+                        default:
+                            alert("Une erreur est survenue");
+                            document.location.href = "/voirSesTrajet.html";
+                            break;
+                    }
+                }
+            }
+        }
+
+    </script>
+</head>
+<body onload="init()" class="w3-teal">
+<div class="w3-center" style="margin-bottom:50px">
+    <img src="images/logo_grrgrrcar.PNG" >
+</div>
+<div class="w3-row">
+    <div style="cursor: pointer" onclick="history.back()"><img src="images/retour.png" width="40" height="40" style="vertical-align:middle;"> Retour</div>
+    <fieldset>
+        <legend>Détail :</legend>
+
+        <label class="w3-label">Ville de départ: </label>
+        <input type="text" disabled="disabled" name="villeDeb" id="villeDeb" class="w3-input"/><br/>
+
+        <label class="w3-label">Destination : </label>
+        <input type="text" disabled="disabled" name="villeFin" id="villeFin" class="w3-input"/><br/>
+
+        <label class="w3-label">Heure de départ : </label>
+        <input type="datetime" disabled="disabled" name="heureDep" id="heureDep" class="w3-input"/><br/>
+
+        <label class="w3-label">Nombre de place disponible maximum : </label>
+        <input type="number" disabled="disabled" name="nbPlace" id="nbPlace" class="w3-input"/><br/>
+
+        <label class="w3-label">Tarif du trajet : </label>
+        <input type="text" disabled="disabled" name="tarif" id="tarif" class="w3-input"/><br/>
+
+        <div class="w3-center">
+            <INPUT type="submit" value="Réserver" onclick="reserver()" class="w3-btn w3-blue-grey">
+        </div>
+    </fieldset>
+</div>
+
+<div class="w3-row">
+    <h1 id="titre_crea"></h1>
+
+    <div id="personneAttente"></div>
+
+    <h1 id="titre_valide"></h1>
+
+    <div id="personneValide"></div>
+
+    <h1 id="titre_refuse"></h1>
+
+    <div id="personneRefuse"></div>
+
+    <div id="conducteur"></div>
+</div>
+
+</body>
+</html>

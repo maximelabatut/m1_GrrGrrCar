@@ -1,0 +1,32 @@
+/* Always set the map height explicitly to define the size of the div
+         * element that contains the map. */
+#map {
+    height: 70%;
+}
+
+/* Optional: Makes the sample page fill the window. */
+html, body {
+    height: 55%;
+    padding-left: 15%;
+    padding-right: 15%;
+}
+
+table.wwFormTable{
+    margin: auto;
+}
+div.formButton{
+    text-align: center;
+    width:100%;
+}
+div.formButton > input{
+    margin-top: 10px;
+    vertical-align: middle;
+}
+
+table#selecteur{
+    margin-top: 18%;
+}
+
+a{
+    text-decoration: none;
+}

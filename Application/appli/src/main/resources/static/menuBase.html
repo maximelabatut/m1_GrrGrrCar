@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>GrrGrrCar</title>
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/w3.css">
+
+    <script language="javascript">
+        var xmlhttp;
+
+        function init() {
+            // put more code here in case you are concerned about browsers that do not provide XMLHttpRequest object directly
+            xmlhttp = new XMLHttpRequest();
+        }
+
+        function deconnexion() {
+            var baseurl = "http://localhost:8080";
+            var url = baseurl + "/grrgrrcar/deconnexion";
+
+            //Récupération de la variable pseudo stocker
+            var pseudo = sessionStorage.getItem("pseudo");
+            sessionStorage.clear();
+
+            //Param est la variable permettant d'envoyer toutes les informations avec un fichier JSON
+            var param = '{ "pseudo":"' + pseudo + '"}';
+
+            xmlhttp.open('POST', url, true);
+            xmlhttp.setRequestHeader("Content-Type", "application/json");
+            xmlhttp.send(param);
+
+            xmlhttp.onreadystatechange = function () {
+                if (xmlhttp.readyState == XMLHttpRequest.DONE) {
+                    switch (xmlhttp.status){
+                        case 200:
+                            // alert("Déconnexion réussit, vous allez être redirigé vers la page de connexion");
+                            document.location.href = "/index.html";
+                            break;
+
+                        case 400:
+                            alert("Personne Introuvable");
+                            document.location.href = "/index.html";
+                            break;
+
+                        default:
+                            alert("Une erreur est survenue");
+                            document.location.href = "/menuBase.html";
+                            break;
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body onload="init()" class="w3-teal">
+<div class="w3-center" style="margin-bottom:50px">
+    <img src="images/logo_grrgrrcar.PNG" >
+</div>
+<div class="w3-row w3-center" >
+
+    <h1 class="w3-center">Menu principal</h1>
+    <a href="voirSesTrajet.html"  class="w3-btn w3-btn-perso"><img src="images/trajet.png" width="40" height="40"> - Mes trajets </a><br/>
+    <a href="creationTrajet.html" class="w3-btn w3-btn-perso"><img src="images/ajout.png" width="40" height="40" style="vertical-align:middle;text-decoration: none"> - Proposer un trajet </a><br/>
+    <a href="reserverUnTrajet.html" class="w3-btn w3-btn-perso"><img src="images/reserver.png" width="40" height="40" style="vertical-align:middle;text-decoration: none" > - Réserver un trajet </a><br/>
+    <a href="voirProfilPersonne.html" class="w3-btn w3-btn-perso"><img src="images/profile.png" width="40" height="40" style="vertical-align:middle;" > - Voir mon profil</a> <br/>
+    <a href="finTrajet.html" class="w3-btn w3-btn-perso"><img src="images/accept.png" width="40" height="40" style="vertical-align:middle;" > - Valider mes Trajets</a> <br/><br/>
+    <input type="submit" value="Déconnexion" onclick="deconnexion()" class="w3-btn w3-center w3-blue-grey" style="margin-top:10px;" >
+</div>
+</body>
+</html>

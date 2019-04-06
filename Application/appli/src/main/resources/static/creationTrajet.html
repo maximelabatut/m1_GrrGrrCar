@@ -1,0 +1,161 @@
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>GrrGrrCar</title>
+        <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+        <meta charset="utf-8">
+
+        <link rel="stylesheet" href="css/style.css">
+        <link rel="stylesheet" href="css/w3.css">
+
+        <link rel="stylesheet" href="js/jquery.datetimepicker.min.css">
+
+
+        <script src="js/jquery.js"></script>
+        <script src="js/jquery.datetimepicker.full.js"></script>
+        <script>
+
+            var xmlhttp;
+
+            function init() {
+                // put more code here in case you are concerned about browsers that do not provide XMLHttpRequest object directly
+                xmlhttp = new XMLHttpRequest();
+            }
+
+            function initMap() {
+                var directionsService = new google.maps.DirectionsService;
+                var directionsDisplay = new google.maps.DirectionsRenderer;
+                var map = new google.maps.Map(document.getElementById('map'), {
+                    zoom: 7,
+                    center: {lat: 48.8534, lng: 2.3488}
+                });
+                directionsDisplay.setMap(map);
+
+                var onChangeHandler = function () {
+                    calculateAndDisplayRoute(directionsService, directionsDisplay);
+                };
+                document.getElementById('voir').addEventListener('click', onChangeHandler);
+            }
+
+            function calculateAndDisplayRoute(directionsService, directionsDisplay) {
+                //Récupération de tout les paramètres du trajet
+                var villeDeb = document.getElementById('villeDeb').value;
+
+                var villeFin = document.getElementById('villeFin').value;
+
+                var start = villeDeb;
+                var end = villeFin;
+
+                directionsService.route({
+                    origin: start,
+                    destination: end,
+                    travelMode: 'DRIVING'
+                }, function (response, status) {
+                    if (status === 'OK') {
+                        directionsDisplay.setDirections(response);
+                    } else {
+                        window.alert('Renseignez les deux adresses ' + status);
+                    }
+                });
+            }
+
+            function create() {
+                var baseurl = "http://localhost:8080";
+                var url = baseurl + "/grrgrrcar/trajet";
+
+                //Récupération de tout les paramètres du trajet
+                var villeDeb = document.getElementById('villeDeb').value;
+                var villeFin = document.getElementById('villeFin').value;
+                var heureDep = document.getElementById('filter-date').value;
+                var newHeureDep = heureDep.replace("/","-");
+                newHeureDep = newHeureDep.replace("/","-");
+                newHeureDep =  newHeureDep.substr(0,10)+"T"+newHeureDep.substr(11,17)+":00-0000";
+                console.log(newHeureDep);
+                var nbPlaces = document.getElementById('nbPlaces').value;
+                var tarif = document.getElementById('tarif').value;
+                var createur =  sessionStorage.getItem("pseudo");
+
+                //Param est la variable permettant d'envoyer toutes les informations avec un fichier JSON
+                var param = '{ "depart":"' + villeDeb + '", ' + '"arrivee":"' + villeFin + '", ' + '"dateDepart":"' + newHeureDep + '", "nbPlaces":"' + nbPlaces + '", "tarif":"' + tarif + '", ' + '"createur":"' + createur + '"}';
+
+                xmlhttp.open('POST', url, true);
+                xmlhttp.setRequestHeader("Content-Type", "application/json");
+                xmlhttp.send(param);
+
+                xmlhttp.onreadystatechange = function () {
+                    if (xmlhttp.readyState == XMLHttpRequest.DONE) {
+                        switch (xmlhttp.status) {
+                            case 201:
+                                // alert("Création de trajet réussit, vous allez être redirigé vers votre page de gestion de trajet");
+                                document.location.href = "/voirSesTrajet.html";
+                                break;
+
+                            case 400:
+                                alert("erreur requete");
+                                document.location.href = "/creationTrajet.html";
+                                break;
+
+                            case 406:
+                                alert("Vous n'avez pas renseigné les champs nécéssaires");
+                                document.location.href = "/creationTrajet.html";
+                                break;
+
+                            default:
+                                alert("bagdad");
+                                document.location.href = "/creationTrajet.html";
+
+                                break;
+                        }
+                    }
+                };
+            }
+
+
+        </script>
+        <script>
+            jQuery(document).ready(function () {
+                jQuery('#filter-date').datetimepicker({
+                    step: 5
+                });
+            });
+        </script>
+
+        <script async defer
+                src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB9iwG5xFRj9sosn9hJ7E3C2yK5q1g_I30&callback=initMap">
+        </script>
+    </head>
+    <body onload="init()" class="w3-teal">
+    <div class="w3-center" style="margin-bottom:50px">
+        <img src="images/logo_grrgrrcar.PNG" >
+    </div>
+    <div style="cursor: pointer" onclick="history.back()"><img src="images/retour.png" width="40" height="40" style="vertical-align:middle;"> Retour</div>
+    <div id="map"></div>
+    <div class="w3-row">
+
+        <fieldset>
+            <legend>Créez votre propre trajet</legend>
+
+            <label for="villeDeb" class="w3-label">Quel est votre ville de départ ?</label>
+            <input type="text" name="villeDeb" id="villeDeb" value="Orléans" class="w3-input" required/><br/>
+
+            <label for="villeFin" class="w3-label">Quel est votre destination ?</label>
+            <input type="text" name="villeFin" id="villeFin" value="Paris" class="w3-input" required/><br/>
+
+            <label for="filter-date" class="w3-label">Quel est l'heure de départ ?</label>
+            <input type="text" name="filter-date" id="filter-date" class="w3-input" required/><br/>
+
+            <label for="nbPlaces" class="w3-label">Quel est votre nombre de place disponible ?</label>
+            <input type="number" name="nbPlaces" id="nbPlaces" class="w3-input" required/><br/>
+
+            <label for="tarif" class="w3-label">Quel est le tarif de votre trajet ?</label>
+            <input type="text" name="tarif" id="tarif" class="w3-input" required/><br/>
+
+            <div class="w3-center">
+                <INPUT type="submit" value="Visualiser le trajet" id="voir" class="w3-btn w3-center w3-blue-grey" style="display:inline-block;">
+                <INPUT type="submit" value="Créer le trajet" onclick="create()" class="w3-btn w3-center w3-blue-grey" style="display:inline-block;">
+            </div>
+        </fieldset>
+
+    </div>
+    </body>
+    </html>

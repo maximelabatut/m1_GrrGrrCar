@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>GrrGrrCar</title>
+
+    <link rel="stylesheet" href="js/jquery.datetimepicker.min.css">
+    <link rel="stylesheet" href="css/style.css">
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/w3.css">
+
+    <script src="js/jquery.js"></script>
+    <script src="js/jquery.datetimepicker.full.js"></script>
+
+    <script language="javascript">
+
+        var xmlhttp;
+
+        function init() {
+            // put more code here in case you are concerned about browsers that do not provide XMLHttpRequest object directly
+            xmlhttp = new XMLHttpRequest();
+            miseAJour();
+        }
+
+        function miseAJour() {
+            var baseurl = "http://localhost:8080";
+            var url = baseurl + "/grrgrrcar/trajet";
+            xmlhttp.open('GET', url, true);
+            xmlhttp.send(null);
+            xmlhttp.onreadystatechange = function () {
+                if (xmlhttp.readyState == 4) {
+                    if (xmlhttp.status == 200) {
+                        var trajets = JSON.parse(xmlhttp.responseText);
+                        for (var i = 0; i < trajets.length; i++) {
+                            var lesTrajetsDispo = document.getElementById("lesTrajetsDispo");
+                            var lien = document.createElement("a");
+                            lien.setAttribute('href', 'voirTrajet.html?id=' + trajets[i].id);
+                            var oImg = document.createElement("img");
+                            oImg.setAttribute('src', 'images/trajet.png');
+                            oImg.setAttribute('style', 'vertical-align:middle');
+                            oImg.setAttribute('height', '40px');
+                            oImg.setAttribute('width', '40px');
+                            lien.appendChild(oImg);
+                            var grp = document.createElement("div");
+                            var texte = document.createElement("div");
+                            var date = new Date(trajets[i].dateDepart).toString();
+                            date = date.replace(" GMT+0200"," ");
+                            texte.innerHTML = "Départ : " + trajets[i].depart + " | " + "Arrivée : " + trajets[i].arrivee + " | " + date;
+                            lien.setAttribute("style","display:inline-block");
+                            texte.setAttribute("style","display:inline-block;margin:10px;");
+                            lien.setAttribute("class","w3-btn-perso")
+                            lien.appendChild(texte);
+                            lesTrajetsDispo.appendChild(lien);
+                        }
+                    }
+                    else{
+                        alert("Error!!! -> " + xmlhttp.responseText);
+                    }
+                }
+            };
+        }
+
+        function filtrer() {
+            var baseurl = "http://localhost:8080";
+
+            var villeDepart = document.getElementById('villeDeb').value;
+            var villeFin = document.getElementById('villeFin').value;
+            var heureDep = document.getElementById('filter-date').value;
+
+            var newHeureDep = heureDep.replace("/","-");
+            newHeureDep = newHeureDep.replace("/","-");
+            newHeureDep = newHeureDep.replace(" ",";")
+
+            var url = baseurl + "/grrgrrcar/rechercheTrajet?villeDepart="+villeDepart+"&villeArrivee="+villeFin+"&dateDepart="+newHeureDep;
+            xmlhttp.open('GET', url, true);
+            xmlhttp.send(null);
+            xmlhttp.onreadystatechange = function () {
+                if (xmlhttp.readyState == 4) {
+                    if (xmlhttp.status == 200) {
+                        var trajets = JSON.parse(xmlhttp.responseText);
+                        document.getElementById("lesTrajetsDispo").innerHTML="";
+                        for (var i = 0; i < trajets.length; i++) {
+                            var lesTrajetsDispo = document.getElementById("lesTrajetsDispo");
+                            var lien = document.createElement("a");
+                            lien.setAttribute('href', 'voirTrajet.html?id=' + trajets[i].id);
+                            var oImg = document.createElement("img");
+                            oImg.setAttribute('src', 'images/trajet.png');
+                            oImg.setAttribute('style', 'vertical-align:middle');
+                            oImg.setAttribute('height', '40px');
+                            oImg.setAttribute('width', '40px');
+                            lien.appendChild(oImg);
+                            var grp = document.createElement("div");
+                            var texte = document.createElement("div");
+                            var date = new Date(trajets[i].dateDepart).toString();
+                            date = date.replace(" GMT+0200"," ");
+                            texte.innerHTML = "Départ : " + trajets[i].depart + " | " + "Arrivée : " + trajets[i].arrivee + " | " + date;
+                            lien.setAttribute("style","display:inline-block");
+                            texte.setAttribute("style","display:inline-block;margin:10px;");
+                            lien.setAttribute("class","w3-btn-perso")
+                            lien.appendChild(texte);
+                            lesTrajetsDispo.appendChild(lien);
+                        }
+                    }
+                    else{
+                        alert("Error!!! -> " + xmlhttp.responseText);
+                    }
+                }
+            };
+        }
+
+    </script>
+
+    <script>
+        jQuery(document).ready(function () {
+            jQuery('#filter-date').datetimepicker({
+                step: 5
+            });
+        });
+    </script>
+
+</head>
+<body onload="init()"  class="w3-teal">
+<div class="w3-center" style="margin-bottom:50px">
+    <img src="images/logo_grrgrrcar.PNG" >
+</div>
+<div class="w3-row" >
+    <div style="cursor: pointer" onclick="history.back()"><img src="images/retour.png" width="40" height="40" style="vertical-align:middle;"> Retour</div>
+    <fieldset>
+        <legend>Rechercher un trajet</legend>
+
+        <label for="villeDeb" class="w3-label">Ville de départ ?</label>
+        <input type="text" name="villeDeb" class="w3-input" id="villeDeb" required/><br/>
+
+        <label for="villeFin" class="w3-label">Destination ?</label>
+        <input type="text" name="villeFin" class="w3-input" id="villeFin" required/><br/>
+
+        <label for="filter-date" class="w3-label">Heure de départ ?</label>
+        <input type="text" name="filter-date" class="w3-input" id="filter-date" required/><br/>
+        <div class="w3-center">
+            <INPUT type="submit" value="Filtrer" class="w3-btn w3-center w3-blue-grey" onclick="filtrer()">
+        </div>
+    </fieldset>
+</div>
+<div class="w3-row w3-center" >
+    <h1>Liste des trajets disponibles :</h1>
+    <p id="lesTrajetsDispo"></p><br/>
+
+</div>
+</body>
+</html>

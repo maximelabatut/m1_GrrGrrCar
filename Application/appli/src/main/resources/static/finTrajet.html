@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GrrGrrCar</title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="../../css/w3.css">
+
+    <link rel="stylesheet" href="../../js/jquery.datetimepicker.min.css">
+
+    <script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <script src="js/date.format.js"></script>
+
+    <script>
+
+        var xmlhttp;
+
+        function init() {
+            // put more code here in case you are concerned about browsers that do not provide XMLHttpRequest object directly
+            xmlhttp = new XMLHttpRequest();
+            recupererTrajet();
+        }
+
+        function recupererTrajet(){
+            var pseudo = sessionStorage.getItem("pseudo");
+            var baseurl = "http://localhost:8080";
+            var url = baseurl + "/grrgrrcar/trajet";
+
+            xmlhttp.open('GET', url, true);
+            xmlhttp.send(null);
+
+            xmlhttp.onreadystatechange = function () {
+                if (xmlhttp.readyState == 4) {
+                    if (xmlhttp.status == 200) {
+                        var listeTrajet = JSON.parse(xmlhttp.responseText);
+                        var date = null;
+                        var compteur = null;
+
+                        for(var i=0; i<listeTrajet.length; i++){
+                            if(!(listeTrajet[i].fini)){
+                                for(var j=0; j<listeTrajet[i].reservations.length; j++){
+                                    if(listeTrajet[i].reservations[j].etat == 1) {
+                                        if (listeTrajet[i].reservations[j].pseudoReservant == pseudo) {
+                                            if (date == null) {
+                                                date = listeTrajet[i].dateDepart;
+                                                compteur = i;
+                                            } else {
+                                                if (listeTrajet[i].dateDepart < date) {
+                                                    date = listeTrajet[i].dateDepart;
+                                                    compteur = i;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        if(compteur != null){
+                            console.log("L'id du trajet : " + listeTrajet[compteur].id);
+                            document.getElementById("idTrajet").innerHTML = listeTrajet[compteur].id;
+                            document.getElementById("idTrajet").setAttribute("value", listeTrajet[compteur].id);
+
+                            //Récupération et adaptation de la date
+                            var date = "\/Date("+listeTrajet[compteur].dateDepart.toString()+")\/";
+                            var nowDate = new Date(parseInt(date.substr(6)));
+                            var result = "";
+                            result += nowDate.format("yyyy-mm-dd");
+                            var annee = result.substr(0,4);
+                            var mois = result.substr(5,2);
+                            var jours = result.substr(8,2);
+                            var dateTime = jours + "/" + mois + "/" + annee;
+
+                            //Insertion des div
+                            var divVilleDep = document.createElement("div");
+                            divVilleDep.setAttribute("class", "w3-label");
+                            divVilleDep.innerHTML = "Ville de départ : ";
+
+                            var divVilleFin = document.createElement("div");
+                            divVilleFin.setAttribute("class", "w3-label");
+                            divVilleFin.innerHTML = "Ville d'arrivée : ";
+
+                            var divDateDep = document.createElement("div");
+                            divDateDep.setAttribute("class", "w3-label");
+                            divDateDep.innerHTML = "Date du départ : ";
+
+                            var divPrixPlace = document.createElement("div");
+                            divPrixPlace.setAttribute("class", "w3-label");
+                            divPrixPlace.innerHTML = "Le prix par place : ";
+
+                            //Insertion des label
+                            var labelVilleDep = document.createElement("label");
+                            labelVilleDep.setAttribute("value", listeTrajet[compteur].depart);
+                            labelVilleDep.setAttribute("id", "villeDep");
+                            labelVilleDep.setAttribute("class", "w3-label");
+                            labelVilleDep.innerHTML = listeTrajet[compteur].depart;
+
+                            var labelVilleFin = document.createElement("label");
+                            labelVilleFin.setAttribute("value", listeTrajet[compteur].arrivee);
+                            labelVilleFin.setAttribute("id", "villeFin");
+                            labelVilleFin.setAttribute("class", "w3-label");
+                            labelVilleFin.innerHTML = listeTrajet[compteur].arrivee;
+
+                            var labelDateDep = document.createElement("label");
+                            labelDateDep.setAttribute("value", dateTime);
+                            labelDateDep.setAttribute("id", "dateDep");
+                            labelDateDep.setAttribute("class", "w3-label");
+                            labelDateDep.innerHTML = dateTime;
+
+                            var labelTarif = document.createElement("label");
+                            labelTarif.setAttribute("value", listeTrajet[compteur].tarif);
+                            labelTarif.setAttribute("id", "tarif");
+                            labelTarif.setAttribute("class", "w3-label");
+                            labelTarif.innerHTML = listeTrajet[compteur].tarif;
+
+                            //Insertion boutton
+                            var buttonValider = document.createElement("input");
+                            buttonValider.setAttribute("type", "submit");
+                            buttonValider.setAttribute("value", "Valider la Fin du Trajet");
+                            buttonValider.setAttribute("onclick", "validerTrajet()");
+                            buttonValider.setAttribute("class", "w3-btn w3-center w3-blue-grey");
+                            buttonValider.setAttribute("style", "display:inline-block;");
+
+                            document.getElementById("leTrajet").appendChild(divVilleDep);
+                            document.getElementById("leTrajet").appendChild(labelVilleDep);
+                            document.getElementById("leTrajet").appendChild(divVilleFin);
+                            document.getElementById("leTrajet").appendChild(labelVilleFin);
+                            document.getElementById("leTrajet").appendChild(divDateDep);
+                            document.getElementById("leTrajet").appendChild(labelDateDep);
+                            document.getElementById("leTrajet").appendChild(divPrixPlace);
+                            document.getElementById("leTrajet").appendChild(labelTarif);
+                            document.getElementById("leTrajet").appendChild(buttonValider);
+
+                        }else{
+                            document.getElementById("leTrajet").innerHTML = "Aucun trajet n'est à valider !";
+                        }
+                    }
+                    else
+                        alert("Error!!! -> " + xmlhttp.responseText);
+                }
+            };
+        }
+
+        function validerTrajet() {
+            //Récupération des paramètres
+            var pseudo = sessionStorage.getItem("pseudo");
+            var idTrajet = document.getElementById("idTrajet").value;
+
+            var baseurl = "http://localhost:8080";
+            var url = baseurl + "/grrgrrcar/trajet/" + idTrajet + "/validation?pseudo=" + pseudo;
+
+            xmlhttp.open('PUT', url, true);
+            xmlhttp.send(null);
+
+            xmlhttp.onreadystatechange = function () {
+                if (xmlhttp.readyState == XMLHttpRequest.DONE) {
+                    switch (xmlhttp.status) {
+                        case 202:
+                            alert("Le trajet est à présent terminé");
+                            document.location.href = "/menuBase.html";
+                            break;
+
+                        case 304:
+                            alert("Votre réservation n'a pas été encore validé");
+                            document.location.href = "/menuBase.html";
+                            break;
+
+                        case 404:
+                            alert("Le trajet choisi est introuvable");
+                            document.location.href = "/finTrajet.html";
+                            break;
+
+                        case 406:
+                            alert("Vous etes pas le conducteur or seul les passagers peuvent valider le trajet");
+                            document.location.href = "/finTrajet.html";
+                            break;
+
+                        default:
+                            alert("Erreur inconnue pour le moment");
+                            document.location.href = "/menuBase.html";
+                            break;
+                    }
+                }
+            };
+        }
+
+
+    </script>
+</head>
+<body onload="init()" class="w3-teal">
+<div class="w3-center" style="margin-bottom:50px">
+    <img src="../../images/logo_grrgrrcar.PNG" >
+</div>
+<div style="cursor: pointer" onclick="history.back()"><img src="images/retour.png" width="40" height="40" style="vertical-align:middle;"> Retour</div>
+<div class="w3-row">
+
+    <input type="hidden" id="idTrajet"/>
+
+    <fieldset>
+        <legend>Vos Trajets en cours :</legend>
+        <p id="leTrajet">
+
+        </p>
+    </fieldset>
+
+</div>
+</body>
+</html>

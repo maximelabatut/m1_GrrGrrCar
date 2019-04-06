@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GrrGrrCar</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/w3.css">
+
+    <script language="javascript">
+        var xmlhttp;
+
+        function init() {
+            // put more code here in case you are concerned about browsers that do not provide XMLHttpRequest object directly
+            xmlhttp = new XMLHttpRequest();
+        }
+
+        function voter() {
+
+            var urlParams = new URLSearchParams(window.location.search);
+
+            var idTrajet = urlParams.get('id');
+            console.log(idTrajet);
+
+            var pseudoTitulaire = urlParams.get('votePassanger');
+            console.log(pseudoTitulaire);
+
+            var pseudoVotant = sessionStorage.getItem("pseudo");
+            console.log(pseudoVotant);
+
+            var commentaire = document.getElementById("commentaire");
+            var select = document.getElementById("note");
+            var note = select.options[select.selectedIndex].value;
+
+            var baseurl = "http://localhost:8080";
+            var commentaire=document.getElementById("commentaire").value;
+            var url = baseurl + "/grrgrrcar/trajet/" + idTrajet + "/votes?pseudoTitulaire=" + pseudoTitulaire;
+
+            //Param est la variable permettant d'envoyer toutes les informations avec un fichier JSON
+            var param = '{ "pseudoVotant":"' + pseudoVotant + '", ' +
+                '"note":"' + note + '", ' +
+                '"commentaire":"' + commentaire + '"}';
+
+            xmlhttp.open('POST', url, true);
+            xmlhttp.setRequestHeader("Content-Type", "application/json");
+            xmlhttp.send(param);
+
+            xmlhttp.onreadystatechange = function () {
+                if (xmlhttp.readyState == XMLHttpRequest.DONE) {
+                    switch (xmlhttp.status) {
+                        case 201:
+                            alert("Votre vote a bien été pris en compte");
+                            document.location.href = "/voirTrajet.html?id="+idTrajet;
+                            break;
+
+                        case 404:
+                            alert("Trajet introuvable");
+                            document.location.href = "/voirSesTrajet.html";
+                            break;
+
+                        case 406:
+                            alert("Vous etes le conducteur");
+                            document.location.href = "/voirSesTrajet.html";
+                            break;
+
+                        case 400:
+                            alert("Personne introuvable");
+                            document.location.href = "/voirSesTrajet.html";
+                            break;
+
+                        default:
+                            alert("Une erreur est survenue");
+                            document.location.href = "/menuBase.html";
+                            break;
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body onload="init()" class="w3-teal">
+<div class="w3-center" style="margin-bottom:50px">
+    <img src="images/logo_grrgrrcar.PNG" >
+</div>
+<div class="w3-row">
+    <div style="cursor: pointer" onclick="history.back()"><img src="images/retour.png" width="40" height="40" style="vertical-align:middle;"> Retour</div>
+    <h1>Voter :</h1>
+    <label hidden id="trajet"></label>
+    <fieldset>
+        <legend>Détail :</legend>
+
+        <label for="note" class="w3-label">Note : </label>
+        <select id="note" class="w3-input">
+            <option value="0">0</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3" selected>3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+        </select>
+
+        <label for="commentaire" class="w3-label">Commentaire : </label>
+        <input type="text"  name="com" id="commentaire" class="w3-input"/><br/>
+        <div class="w3-center">
+            <input type="submit" value="Voter" onclick="voter()" class="w3-btn w3-blue-grey">
+        </div>
+    </fieldset>
+
+</div>
+</body>
+</html>

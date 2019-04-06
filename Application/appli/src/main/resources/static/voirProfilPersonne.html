@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GrrGrrCar</title>
+    <script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <script src="js/date.format.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/w3.css">
+    <script language="javascript">
+        var xmlhttp;
+
+        function init() {
+            // put more code here in case you are concerned about browsers that do not provide XMLHttpRequest object directly
+            xmlhttp = new XMLHttpRequest();
+            recuperationDesDonnees();
+        }
+
+        function recuperationDesDonnees() {
+            //Récupération de la variable pseudo stocker
+            var pseudo = sessionStorage.getItem("pseudo");
+
+            var baseurl = "http://localhost:8080";
+            var url = baseurl + "/grrgrrcar/" + pseudo;
+
+            xmlhttp.open('GET', url, true);
+            xmlhttp.send(null);
+
+            xmlhttp.onreadystatechange = function () {
+                if (xmlhttp.readyState == 4) {
+                    if (xmlhttp.status == 200) {
+                        var unePersonne = JSON.parse(xmlhttp.responseText);
+
+                        //Mise en place du pseudo dans le titre sur un label
+                        document.getElementById("pseudo").innerHTML =  pseudo ;
+
+                        //Gestion de la date d'Inscription
+                        var date = "\/Date("+unePersonne.dateInscription.toString()+")\/";
+                        var nowDate = new Date(parseInt(date.substr(6)));
+                        var dateInscription = "";
+                        dateInscription += nowDate.format("yyyy-mm-dd");
+                        var annee = dateInscription.substr(0,4);
+                        var mois = dateInscription.substr(5,2);
+                        var jours = dateInscription.substr(8,2);
+                        dateInscription = jours + "/" + mois + "/" + annee;
+                        document.getElementById("dateInscription").innerHTML = dateInscription;
+
+                        //Gestions de la moyenne
+
+                        //Gestion de toutes les notes
+                        for(var i=0; i<unePersonne.votes.length; i++){
+                            //Insertion des div
+                            var divVotant = document.createElement("div");
+                            divVotant.setAttribute("class", "w3-label");
+                            divVotant.setAttribute("style", "display:inline-block");
+                            divVotant.innerHTML = "Votant : ";
+
+                            var labelVotant = document.createElement("label");
+                            labelVotant.setAttribute("name", "labelVotant");
+                            labelVotant.setAttribute("style", "display:inline!important");
+                            labelVotant.setAttribute("type", "text");
+                            labelVotant.setAttribute("id", i);
+                            labelVotant.setAttribute("class", "w3-label");
+                            labelVotant.setAttribute("value", unePersonne.votes[i].pseudoVotant);
+                            labelVotant.innerHTML = unePersonne.votes[i].pseudoVotant;
+
+                            var divNote = document.createElement("div");
+                            divNote.setAttribute("class", "w3-label");
+                            divNote.setAttribute("style", "display:inline-block");
+                            divNote.innerHTML = " Note : ";
+
+                            var labelNote = document.createElement("label");
+                            labelNote.setAttribute("name", "labelNote");
+                            labelNote.setAttribute("type", "text");
+                            labelNote.setAttribute("style", "display:inline!important");
+                            labelNote.setAttribute("id", i);
+                            labelNote.setAttribute("class", "w3-label");
+                            labelNote.setAttribute("value", unePersonne.votes[i].note);
+                            labelNote.innerHTML = unePersonne.votes[i].note;
+
+                            var divCommentaire = document.createElement("div");
+                            divCommentaire.setAttribute("class", "w3-label");
+                            divCommentaire.setAttribute("style", "display:inline-block");
+                            divCommentaire.innerHTML = " Commentaire : ";
+
+                            var labelCommentaire = document.createElement("label");
+                            labelCommentaire.setAttribute("name", "labelCommentaire");
+                            labelCommentaire.setAttribute("type", "text");
+                            labelCommentaire.setAttribute("style", "display:inline!important");
+                            labelCommentaire.setAttribute("id", i);
+                            labelCommentaire.setAttribute("class", "w3-label");
+                            labelCommentaire.setAttribute("value", unePersonne.votes[i].commentaire);
+                            labelCommentaire.innerHTML = unePersonne.votes[i].commentaire;
+
+                            divVotant.appendChild(labelVotant);
+                            document.getElementById("differentsVotes").appendChild(divVotant);
+
+                            divNote.appendChild(labelNote);
+                            document.getElementById("differentsVotes").appendChild(divNote);
+
+                            divCommentaire.appendChild(labelCommentaire);
+                            document.getElementById("differentsVotes").appendChild(divCommentaire);
+                        }
+
+                        //Mise en place des informations dans les input
+                        document.getElementById("nom").value = unePersonne.nom;
+                        document.getElementById("prenom").value = unePersonne.prenom;
+                        document.getElementById("adresse").value = unePersonne.adresse;
+                        document.getElementById("ville").value = unePersonne.ville;
+                        document.getElementById("codePostal").value = unePersonne.codePostal;
+                        document.getElementById("email").value = unePersonne.email;
+
+                        if(!(unePersonne.dateNaiss == null)) {
+                            var date = "\/Date("+unePersonne.dateNaiss.toString()+")\/";
+                            var nowDate = new Date(parseInt(date.substr(6)));
+                            var result = "";
+                            result += nowDate.format("yyyy-mm-dd");
+                            document.getElementById("dateNaiss").value = result;
+                        }
+                    }
+                    else
+                        alert("Error!!! -> " + xmlhttp.responseText);
+                }
+            };
+        }
+
+        function enregistrementInformations(){
+            //Récupération de la variable pseudo stocker
+            var pseudo = sessionStorage.getItem("pseudo");
+
+            //Récupération des paramètres
+            var nom = document.getElementById("nom").value;
+            var prenom = document.getElementById("prenom").value;
+            var adresse = document.getElementById("adresse").value;
+            var codePostal = document.getElementById("codePostal").value;
+            var ville = document.getElementById("ville").value;
+            var email = document.getElementById("email").value;
+            var dateNaiss = document.getElementById("dateNaiss").value;
+
+            dateNaiss = dateNaiss.replace("-", "/");
+            dateNaiss = dateNaiss.replace("-", "/");
+
+            //Préparation de l'url permettant de faire appel à la fonction dans le controleur
+            var baseurl = "http://localhost:8080";
+            var url = baseurl + "/grrgrrcar/" + pseudo + "?dateNaiss="+ '"' + dateNaiss + '"';
+
+            //Param est la variable permettant d'envoyer toutes les informations avec un fichier JSON
+            var param = '{ "nom":"' + nom + '", ' +
+                '"prenom":"' + prenom + '", ' +
+                '"adresse":"' + adresse + '", ' +
+                '"ville":"' + ville + '", ' +
+                '"codePostal":"' + codePostal + '", ' +
+                '"email":"' + email + '"}';
+
+            xmlhttp.open('PUT', url, true);
+            xmlhttp.setRequestHeader("Content-Type", "application/json");
+            xmlhttp.send(param);
+
+
+            xmlhttp.onreadystatechange = function () {
+                if (xmlhttp.readyState == XMLHttpRequest.DONE) {
+                    switch (xmlhttp.status){
+                        case 200:
+                            alert("Modification réussit, vous allez être redirigé vers l'interface GrrGrrCar.");
+                            document.location.href = "/menuBase.html";
+                            break;
+
+                        case 400:
+                            alert("Erreur lors de l'enregistrement, la requête à échoué.");
+                            document.location.href = "/voirProfilPersonne.html";
+                            break;
+
+                        default:
+                            document.location.href = "/voirProfilPersonne.html";
+                            break;
+                    }
+                }
+            };
+        }
+    </script>
+</head>
+<body onload="init()" class="w3-teal">
+<div class="w3-center" style="margin-bottom:50px">
+    <img src="images/logo_grrgrrcar.PNG" >
+</div>
+<div class="w3-row" >
+    <div style="cursor: pointer" onclick="history.back()"><img src="images/retour.png" width="40" height="40" style="vertical-align:middle;"> Retour</div>
+    <h1>Profil de : <label id="pseudo"/></h1>
+    <h3>Inscription faite le : <label id="dateInscription"/></h3>
+
+    <fieldset>
+        <legend>Vos informations personnelles</legend>
+
+        <label for="email" class="w3-label">Votre Email : </label>
+        <input type="text" name="email" id="email" class="w3-input" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$"/><br/>
+
+        <label for="pseudo" class="w3-label">Votre Nom : </label>
+        <input type="text" name="nom" id="nom" class="w3-input"/>
+        <br/>
+
+        <label for="prenom" class="w3-label">Votre Prénom : </label>
+        <input type="text" name="prenom" id="prenom" class="w3-input"/>
+        <br/>
+
+        <label for="adresse" class="w3-label">Votre Adresse : </label>
+        <input type="text" name="adresse" id="adresse" class="w3-input"/>
+        <br/>
+
+        <label for="ville" class="w3-label">Votre Ville : </label>
+        <input type="text" name="ville" id="ville" class="w3-input"/>
+        <br/>
+
+        <label for="codePostal" class="w3-label">Votre Code Postal : </label>
+        <input type="text" name="codePostal" id="codePostal" class="w3-input"/>
+        <br/>
+
+        <label for="dateNaiss" class="w3-label">Votre Date de Naissance : </label>
+        <input type="date" name="dateNaiss" id="dateNaiss" class="w3-input" pattern="[0-9]{2}/[0-9]{2}/[0-9]{4}"/><br/>
+        <div class="w3-center">
+            <input type="submit" value="Enregistrer" onclick="enregistrementInformations()" class="w3-btn w3-center w3-blue-grey"/>
+        </div>
+        <br/>
+    </fieldset>
+    <fieldset>
+        <legend>Voici vos notes reçu au cours de ces derniers voyages : </legend>
+        <div id="differentsVotes">
+
+        </div>
+    </fieldset>
+</div>
+</body>
+
+</html>

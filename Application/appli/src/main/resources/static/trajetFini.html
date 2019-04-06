@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>GrrGrrCar</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/w3.css">
+    <script language="javascript">
+        var xmlhttp;
+
+        function init() {
+            // put more code here in case you are concerned about browsers that do not provide XMLHttpRequest object directly
+            xmlhttp = new XMLHttpRequest();
+            getTrajetFini();
+        }
+
+        //on récupère les trajets pour lequels le crétateur est la personne connecté
+        function getTrajetFini() {
+            var personne = sessionStorage.getItem("pseudo");
+            var baseurl = "http://localhost:8080";
+            var url = baseurl + "/grrgrrcar/trajet";
+            xmlhttp.open('GET', url, true);
+            xmlhttp.send(null);
+            xmlhttp.onreadystatechange = function () {
+                if (xmlhttp.readyState == 4) {
+                    if (xmlhttp.status == 200) {
+                        var trajets = JSON.parse(xmlhttp.responseText);
+                        for (var i = 0; i < trajets.length; i++) {
+                            if (trajets[i].createur === personne && trajets[i].fini) {
+                                var div = document.createElement("div");
+                                div.setAttribute('style', 'display:inline-block');
+                                var mesTrajetsFinisConducteur = document.getElementById("mesTrajetsFinisConducteur");
+                                var lien = document.createElement("a");
+                                lien.setAttribute('href', 'voirTrajet.html?id=' + trajets[i].id);
+                                var oImg = document.createElement("img");
+                                oImg.setAttribute('src', 'images/volant.png');
+                                oImg.setAttribute('style', 'vertical-align:middle');
+                                oImg.setAttribute('height', '40px');
+                                oImg.setAttribute('width', '40px');
+                                lien.appendChild(oImg);
+                                div.appendChild(lien);
+                                var texte = document.createElement("div");
+                                texte.innerHTML = "Départ : " + trajets[i].depart + " | " + "Arrivée : " + trajets[i].arrivee + " | " + new Date(trajets[i].dateDepart).toString();
+                                texte.setAttribute('style', 'display:inline-block');
+                                mesTrajetsFinisConducteur.appendChild(texte);
+                                mesTrajetsFinisConducteur.appendChild(div);
+                            }
+                            for (var j = 0; j < trajets[i].reservations.length; j++) {
+                                var reservation = trajets[i].reservations[j];
+                                if (reservation.pseudoReservant === personne && trajets[i].fini) {
+                                    var div = document.createElement("div");
+                                    div.setAttribute('style', 'display:inline-block');
+                                    var mesTrajetsFinisPassager = document.getElementById("mesTrajetsFinisPassager");
+                                    var lien = document.createElement("a");
+                                    lien.setAttribute('href', 'voirTrajet.html?id=' + trajets[i].id);
+                                    var oImg = document.createElement("img");
+                                    oImg.setAttribute('style', 'vertical-align:middle');
+                                    oImg.setAttribute('src', 'images/bagage.png');
+                                    oImg.setAttribute('height', '40px');
+                                    oImg.setAttribute('width', '40px');
+                                    lien.appendChild(oImg);
+                                    div.appendChild(lien);
+                                    var texte = document.createElement("div");
+                                    texte.innerHTML = "Départ : " + trajets[i].depart + " | " + "Arrivée : " + trajets[i].arrivee + " | " + new Date(trajets[i].dateDepart).toString();
+                                    texte.setAttribute('style', 'display:inline-block');
+                                    mesTrajetsFinisPassager.appendChild(texte);
+                                    mesTrajetsFinisPassager.appendChild(div);
+                                }
+                            }
+                        }
+                    }
+                    else
+                        alert("Error!!! -> " + xmlhttp.responseText);
+                }
+            };
+        }
+    </script>
+</head>
+<body onload="init()" class="w3-teal">
+<div class="w3-center" style="margin-bottom:50px">
+    <img src="images/logo_grrgrrcar.PNG" >
+</div>
+<div class="w3-row w3-center" >
+    <div style="cursor: pointer" onclick="history.back()"><img src="images/retour.png" width="40" height="40" style="vertical-align:middle;"> Retour</div>
+    <h1>Liste des trajets en tant que conducteur :</h1>
+    <div id="mesTrajetsFinisConducteur"></div>
+
+    <h1>Liste des trajets en tant que passager :</h1>
+    <div id="mesTrajetsFinisPassager"></div>
+</div>
+</body>
+
+</html>

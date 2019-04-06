@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>GrrGrrCar</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/w3.css">
+    <script language="javascript">
+        var xmlhttp;
+
+        function init() {
+            // put more code here in case you are concerned about browsers that do not provide XMLHttpRequest object directly
+            xmlhttp = new XMLHttpRequest();
+            getTrajet();
+        }
+
+        //on récupère les trajets pour lequels le crétateur est la personne connecté
+        function getTrajet() {
+
+            var personne = sessionStorage.getItem("pseudo");
+            var baseurl = "http://localhost:8080";
+            var url = baseurl + "/grrgrrcar/trajet";
+            xmlhttp.open('GET', url, true);
+            xmlhttp.send(null);
+            xmlhttp.onreadystatechange = function () {
+                if (xmlhttp.readyState == 4) {
+                    if (xmlhttp.status == 200) {
+                        var trajets = JSON.parse(xmlhttp.responseText);
+
+                        for (var i = 0; i < trajets.length; i++) {
+                            var imgConducteur = document.createElement("img");
+                            imgConducteur.setAttribute('src', 'images/volant.png');
+                            imgConducteur.setAttribute('style', 'vertical-align:middle');
+                            imgConducteur.setAttribute('height', '40px');
+                            imgConducteur.setAttribute('width', '40px');
+                            var imgPassager = document.createElement("img");
+                            imgPassager.setAttribute('src', 'images/bagage.png');
+                            imgPassager.setAttribute('style', 'vertical-align:middle');
+                            imgPassager.setAttribute('height', '40px');
+                            imgPassager.setAttribute('width', '40px');
+                            // Initialisation de la liste des trajets terminés
+                            if(trajets[i].fini){
+                                var div = document.createElement("div");
+                                var a = document.createElement("a");
+                                a.setAttribute('href', 'voirTrajet.html?id=' + trajets[i].id);
+                                var date = new Date(trajets[i].dateDepart).toString();
+                                date = date.replace(" GMT+0200", " ");
+                                a.innerHTML = "Départ : " + trajets[i].depart + " | " + "Arrivée : " + trajets[i].arrivee + " | " + date;
+
+                                if(trajets[i].createur === personne){
+                                    var lesTrajets = document.getElementById("mesTrajetsFinis");
+                                    div.appendChild(imgConducteur);
+                                }else {
+                                    // Liste des trajets Passager
+                                    var lesTrajets = document.getElementById("lesTrajetsFinis");
+                                    div.appendChild(imgPassager);
+                                }
+                                div.setAttribute("style","display:inline-block");
+                                a.appendChild(div);
+                                a.setAttribute("style","display:block;")
+
+                                lesTrajets.appendChild(a);
+                            }else {
+                                if (trajets[i].createur === personne) {
+                                    var lesTrajets = document.getElementById("mesTrajetsCrees");
+                                    var lien3 = document.createElement("a");
+                                    lien3.setAttribute('href', 'voirTrajet.html?id=' + trajets[i].id);
+                                    var oImg2 = document.createElement("img");
+                                    oImg2.setAttribute('src', 'images/trajet.png');
+                                    oImg2.setAttribute('style', 'vertical-align:middle');
+                                    oImg2.setAttribute('height', '40px');
+                                    oImg2.setAttribute('width', '40px');
+                                    var texte3 = document.createElement("div");
+                                    var date3 = new Date(trajets[i].dateDepart).toString();
+                                    date3 = date3.replace(" GMT+0200", " ");
+                                    texte3.innerHTML = "Départ : " + trajets[i].depart + " | " + "Arrivée : " + trajets[i].arrivee + " | " + date3;
+                                    texte3.setAttribute("style","display:inline-block;");
+                                    lien3.setAttribute("style","display:block;");
+                                    lien3.appendChild(texte3);
+                                    lien3.appendChild(oImg2);
+                                    lesTrajets.appendChild(lien3);
+                                }
+                                for (var j = 0; j < trajets[i].reservations.length; j++) {
+                                    if(!trajets[i].fini) {
+                                        var reservation = trajets[i].reservations[j];
+                                        if (reservation.pseudoReservant === personne) {
+                                            var oImg3 = document.createElement("img");
+                                            switch (reservation.etat) {
+                                                case 0 :
+                                                    oImg3.setAttribute('src', 'images/attente.png');
+                                                    break;
+
+                                                case 1 :
+                                                    oImg3.setAttribute('src', 'images/valide.png');
+                                                    break;
+
+                                                case 2 :
+                                                    oImg3.setAttribute('src', 'images/refuser.png');
+                                                    break;
+                                            }
+                                            var mesReservations = document.getElementById("mesReservations");
+                                            var lien2 = document.createElement("a");
+                                            lien2.setAttribute('href', 'voirTrajet.html?id=' + trajets[i].id);
+                                            oImg3.setAttribute('style', 'vertical-align:middle');
+                                            oImg3.setAttribute('height', '40px');
+                                            oImg3.setAttribute('width', '40px');
+                                            var texte2 = document.createElement("div");
+                                            var date2 = new Date(trajets[i].dateDepart).toString();
+                                            date2 = date2.replace(" GMT+0200", " ");
+                                            texte2.innerHTML = "Départ : " + trajets[i].depart + " | " + "Arrivée : " + trajets[i].arrivee + " | " + date2;
+                                            texte2.setAttribute("style","display:inline-block;");
+                                            lien2.setAttribute("style","display:block;");
+                                            lien2.appendChild(texte2);
+                                            lien2.appendChild(oImg3);
+                                            mesReservations.appendChild(lien2);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else
+                        alert("Error!!! -> " + xmlhttp.responseText);
+                }
+            };
+        }
+
+    </script>
+</head>
+<body onload="init()" class="w3-teal">
+<div class="w3-center" style="margin-bottom:50px">
+    <img src="images/logo_grrgrrcar.PNG" >
+</div>
+<div class="w3-row">
+    <div style="cursor: pointer" onclick="history.back()"><img src="images/retour.png" width="40" height="40" style="vertical-align:middle;"> Retour</div>
+    <h1>Liste de mes trajets à venir :</h1>
+    <div id="mesTrajetsCrees"></div>
+</div>
+<div class="w3-row">
+    <h1>Liste de mes réservations :</h1>
+
+    <label>Légende : </label><br/>
+    <label><img src="images/valide.png" width="40" height="40" style="vertical-align:middle;"> : Validé </label><br/>
+    <label><img src="images/refuser.png" width="40" height="40" style="vertical-align:middle;"> : Refusé </label><br/>
+    <label><img src="images/attente.png" width="40" height="40" style="vertical-align:middle;"> : En attente </label><br/>
+
+    <div id="mesReservations"></div>
+</div>
+<div class="w3-row">
+    <h1>Liste de mes trajets terminés (Conducteur)</h1>
+    <div id="mesTrajetsFinis"></div>
+
+    <h1>Liste de mes trajets terminés (Passager)</h1>
+    <div id="lesTrajetsFinis"></div>
+</div>
+</body>
+</html>

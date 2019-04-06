@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>GrrGrrCar</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/w3.css">
+
+    <script language="javascript">
+
+        var xmlhttp;
+
+        function init() {
+            // put more code here in case you are concerned about browsers that do not provide XMLHttpRequest object directly
+            xmlhttp = new XMLHttpRequest();
+        }
+
+        function connexion() {
+            var baseurl = "http://localhost:8080";
+            var url = baseurl + "/grrgrrcar/connexion";
+
+            //Récupération de tout les paramètres de l'inscription
+            var pseudo = document.getElementById("pseudo").value;
+            var password = document.getElementById("password").value;
+
+            //Passage du pseudo en variable de session
+            sessionStorage.setItem("pseudo", pseudo);
+
+            //Param est la variable permettant d'envoyer toutes les informations avec un fichier JSON
+            var param = '{ "pseudo":"' + pseudo + '", ' + '"motDePasse":"' + password + '"}';
+
+            xmlhttp.open('POST', url, true);
+            xmlhttp.setRequestHeader("Content-Type", "application/json");
+            xmlhttp.send(param);
+
+            xmlhttp.onreadystatechange = function () {
+                if (xmlhttp.readyState == XMLHttpRequest.DONE) {
+                    switch (xmlhttp.status){
+                        case 200:
+                            // alert("Connexion réussit, vous allez être redirigé vers l'interface GrrGrrCar");
+                            document.location.href = "/menuBase.html";
+                            break;
+
+                        case 400:
+                            alert("Mauvais mot de passe ou Personne Introuvable");
+                            document.location.href = "/index.html";
+                            break;
+
+                        case 406:
+                            alert("Vous n'avez pas renseigné les champs nécéssaires");
+                            document.location.href = "/index.html";
+                            break;
+
+                        default:
+                            document.location.href = "/index.html";
+                            break;
+                    }
+                }
+            };
+        }
+
+    </script>
+</head>
+<body onload="init()" class="w3-teal">
+<div class="w3-center" style="margin-bottom:50px">
+    <img src="images/logo_grrgrrcar.PNG" >
+</div>
+
+<div class="w3-row">
+    <fieldset>
+        <legend>Connectez-vous</legend>
+
+        <label for="pseudo" class="w3-label">Quel est votre pseudo ?</label>
+        <input type="text" name="pseudo" id="pseudo" class="w3-input"/><br/>
+
+        <label for="password" class="w3-label">Quel est votre mot de passe ?</label>
+        <input type="password" name="password" id="password" class="w3-input"/><br/>
+
+        <div class="w3-center">
+            <INPUT type="submit" value="Connexion" class="w3-btn w3-center w3-blue-grey" onclick="connexion()" >
+        </div>
+    </fieldset><br/>
+    <div class="w3-center">
+    <p>Vous n'avez pas de compte ?, <a href="menuInscription.html" style="text-decoration: underline">inscrivez-vous ici</a></p><br/>
+    </div>
+</div>
+</body>
+</html>
